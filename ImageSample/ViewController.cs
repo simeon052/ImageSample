@@ -2,8 +2,9 @@
 
 using AppKit;
 using Foundation;
-using Lib.Mac;
+using static Lib.Mac.ImageConvert;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace ImageSample
 {
@@ -35,7 +36,8 @@ namespace ImageSample
 
 		async partial void  ConvertPressed(NSObject sender)
 		{
-			await ImageConvert.Convert(@"/Users/matsussa/Documents/cat2.jpg", "/Users/matsussa/Documents/cat2.jpg.png").ConfigureAwait(false);
+			List<string> srcList = new List<string> { @"/Users/matsussa/Documents/cat1.png", @"/Users/matsussa/Documents/cat2.jpg" };
+			await Convert(srcList, ImageType.JPG).ConfigureAwait(false);
 		}
 
 		partial void BrowsePressed(NSObject sender)
