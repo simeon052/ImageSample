@@ -15,6 +15,9 @@ namespace ImageSample
 		[Outlet]
 		AppKit.NSTextField filenameEdit { get; set; }
 
+		[Outlet]
+		AppKit.NSTextField filesList { get; set; }
+
 		[Action ("BrowsePressed:")]
 		partial void BrowsePressed (Foundation.NSObject sender);
 
@@ -26,6 +29,11 @@ namespace ImageSample
 			if (filenameEdit != null) {
 				filenameEdit.Dispose ();
 				filenameEdit = null;
+			}
+
+			if (filesList != null) {
+				filesList.Dispose ();
+				filesList = null;
 			}
 		}
 	}
