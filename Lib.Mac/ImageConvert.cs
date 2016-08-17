@@ -64,17 +64,22 @@ namespace Lib.Mac
 				}
 			}
 
+			var cgimages = new List<CGImage>();
+			foreach (var s in src)
+			{
+				cgimages.AddRange(await GetCGImagesFromPDF(s));
+			}
 
 			string dist = src.FirstOrDefault() + "." + type.ToString();
 
 			using (var url = NSUrl.FromFilename(dist))
-			using (var dstImg = CGImageDestination.Create(url, uttype, src.Count))
+			using (var dstImg = CGImageDestination.Create(url, uttype, cgimages.Count))
 			{
-				foreach (var s in src)
+				foreach (var ci in cgimages)
 				{
-					var cgimage = await GetCGImage(s);
-					dstImg?.AddImage(cgimage);
+					dstImg?.AddImage(ci);
 				}
+
 				return dstImg?.Close() ?? false;
 			}
 		}
@@ -84,11 +89,35 @@ namespace Lib.Mac
 			IFolder folder = await FileSystem.Current.GetFolderFromPathAsync(Path.GetDirectoryName(src));
 			IFile file = await folder.GetFileAsync(Path.GetFileName(src));
 			NSImage srcImg = NSImage.FromStream(await file.OpenAsync(PCLStorage.FileAccess.Read));
+			return NSImage2CGImage(srcImg);
+		}
+
+		private static CGImage NSImage2CGImage(NSImage srcImg)
+		{
 			var rect = new CGRect(0f, 0f, srcImg.Size.Width, srcImg.Size.Height);
 			CGImage cgImage = srcImg.AsCGImage(ref rect, null, null);
 			return cgImage;
 		}
-	
+
+		private static async Task<List<CGImage>> GetCGImagesFromPDF(string src)
+		{
+			IFolder folder = await FileSystem.Current.GetFolderFromPathAsync(Path.GetDirectoryName(src));
+
+			var imageList = new List<CGImage>();
+			var doc = new PdfKit.PdfDocument(NSUrl.FromFilename(src));
+			for (int n = 0; n < doc.PageCount; n++)
+			{
+				var page = doc.GetPage(n);
+				var nsData = page.DataRepresentation;
+				var pdfImageRep = new NSPdfImageRep(nsData);
+
+				var nsImage = new NSImage(page.DataRepresentation);
+				nsImage.Draw(new CGRect(0, 0, pdfImageRep.Size.Width, pdfImageRep.Size.Height));
+				imageList.Add(NSImage2CGImage(nsImage));
+			}
+			return imageList;
+		}
+
 	}
-	
+
 }

@@ -40,7 +40,7 @@ namespace ImageSample
 			//			List<string> srcList = new List<string> { @"/Users/matsussa/Documents/cat1.png", @"/Users/matsussa/Documents/cat2.jpg" };
 			if (srcList.Count != 0)
 			{
-				var result = await Convert(srcList, ImageType.PDF).ConfigureAwait(false);
+				var result = await Convert(srcList, ImageType.TIF).ConfigureAwait(false);
 				InvokeOnMainThread(() =>
 				{
 					if (result)
@@ -59,7 +59,8 @@ namespace ImageSample
 			using (var panel = new NSOpenPanel())
 			{
 				panel.AllowsMultipleSelection = true;
-				panel.AllowedFileTypes = new string[] { "jpg", "png", "bmp", "tif", "pdf" };
+				//				panel.AllowedFileTypes = new string[] { "jpg", "png", "bmp", "tif", "pdf" };
+				panel.AllowedFileTypes = new string[] { "pdf" };
 
 				panel.RunModal();
 
