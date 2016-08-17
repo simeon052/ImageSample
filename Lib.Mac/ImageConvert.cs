@@ -14,9 +14,17 @@ namespace Lib.Mac
 {
 	public class ImageConvert
 	{
-		public ImageConvert()
+		readonly NSObject owner;
+
+		private ImageConvert()
 		{
 		}
+
+		public ImageConvert(NSObject owner)
+		{
+			this.owner = owner;
+		}
+
 		public enum ImageType : int
 		{
 			JPG,
@@ -27,7 +35,7 @@ namespace Lib.Mac
 		}
 
 
-		public static async Task<bool> Convert(List<string> src, ImageType type)
+		public async Task<bool> Convert(List<string> src, ImageType type)
 		{
 			string uttype;
 			bool multipageSupport;
@@ -99,22 +107,28 @@ namespace Lib.Mac
 			return cgImage;
 		}
 
-		private static async Task<List<CGImage>> GetCGImagesFromPDF(string src)
+		private async Task<List<CGImage>> GetCGImagesFromPDF(string src)
 		{
-			IFolder folder = await FileSystem.Current.GetFolderFromPathAsync(Path.GetDirectoryName(src));
 
 			var imageList = new List<CGImage>();
-			var doc = new PdfKit.PdfDocument(NSUrl.FromFilename(src));
-			for (int n = 0; n < doc.PageCount; n++)
+			await Task.Run(() =>
 			{
-				var page = doc.GetPage(n);
-				var nsData = page.DataRepresentation;
-				var pdfImageRep = new NSPdfImageRep(nsData);
 
-				var nsImage = new NSImage(page.DataRepresentation);
-				nsImage.Draw(new CGRect(0, 0, pdfImageRep.Size.Width, pdfImageRep.Size.Height));
-				imageList.Add(NSImage2CGImage(nsImage));
-			}
+				var doc = new PdfKit.PdfDocument(NSUrl.FromFilename(src));
+				for (int n = 0; n < doc.PageCount; n++)
+				{
+					var page = doc.GetPage(n);
+					var nsData = page.DataRepresentation;
+					this.owner.InvokeOnMainThread(() =>
+					{
+						var pdfImageRep = new NSPdfImageRep(nsData);
+
+						var nsImage = new NSImage(page.DataRepresentation);
+						nsImage.Draw(new CGRect(0, 0, pdfImageRep.Size.Width, pdfImageRep.Size.Height));
+					imageList.Add(NSImage2CGImage(nsImage));
+					});
+				}
+			});
 			return imageList;
 		}
 

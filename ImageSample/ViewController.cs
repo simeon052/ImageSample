@@ -2,7 +2,8 @@
 
 using AppKit;
 using Foundation;
-using static Lib.Mac.ImageConvert;
+//using static Lib.Mac.ImageConvert;
+using Lib.Mac;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -40,7 +41,9 @@ namespace ImageSample
 			//			List<string> srcList = new List<string> { @"/Users/matsussa/Documents/cat1.png", @"/Users/matsussa/Documents/cat2.jpg" };
 			if (srcList.Count != 0)
 			{
-				var result = await Convert(srcList, ImageType.TIF).ConfigureAwait(false);
+				var ic = new ImageConvert(this);
+				var result = await ic.Convert(srcList, ImageConvert.ImageType.TIF).ConfigureAwait(false);
+
 				InvokeOnMainThread(() =>
 				{
 					if (result)
