@@ -75,7 +75,8 @@ namespace Lib.Mac
 			var cgimages = new List<CGImage>();
 			foreach (var s in src)
 			{
-				cgimages.AddRange(await GetCGImagesFromPDF(s));
+				//cgimages.AddRange(await GetCGImagesFromPDF(s));
+				cgimages.AddRange(await GetCGImage(s));
 			}
 
 			string dist = src.FirstOrDefault() + "." + type.ToString();
@@ -90,14 +91,23 @@ namespace Lib.Mac
 
 				return dstImg?.Close() ?? false;
 			}
+
 		}
 
-		private static async Task<CGImage> GetCGImage(string src)
+		private static async Task<List<CGImage>> GetCGImage(string src)
 		{
-			IFolder folder = await FileSystem.Current.GetFolderFromPathAsync(Path.GetDirectoryName(src));
-			IFile file = await folder.GetFileAsync(Path.GetFileName(src));
-			NSImage srcImg = NSImage.FromStream(await file.OpenAsync(PCLStorage.FileAccess.Read));
-			return NSImage2CGImage(srcImg);
+			var cgimages = new List<CGImage>();
+			await Task.Run(() =>
+			{
+				using (var cis = CGImageSource.FromUrl(NSUrl.FromFilename(src)))
+				{
+					for (int i = 0; i < cis.ImageCount; i++)
+					{
+						cgimages.Add(cis.CreateImage(i, new CGImageOptions()));
+					}
+				}
+			});
+			return cgimages;
 		}
 
 		private static CGImage NSImage2CGImage(NSImage srcImg)
