@@ -9,6 +9,7 @@ using ImageIO;
 using MobileCoreServices;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics.Contracts;
 
 namespace Lib.Mac
 {
@@ -75,8 +76,14 @@ namespace Lib.Mac
 			var cgimages = new List<CGImage>();
 			foreach (var s in src)
 			{
-				//cgimages.AddRange(await GetCGImagesFromPDF(s));
-				cgimages.AddRange(await GetCGImage(s));
+				if (Path.GetExtension(s).ToUpper().Contains(ImageType.PDF.ToString()))
+				{
+					cgimages.AddRange(await GetCGImagesFromPDF(s));
+				}
+				else
+				{
+					cgimages.AddRange(await GetCGImages(s));
+				}
 			}
 
 			string dist = src.FirstOrDefault() + "." + type.ToString();
@@ -94,7 +101,7 @@ namespace Lib.Mac
 
 		}
 
-		private static async Task<List<CGImage>> GetCGImage(string src)
+		private static async Task<List<CGImage>> GetCGImages(string src)
 		{
 			var cgimages = new List<CGImage>();
 			await Task.Run(() =>
@@ -110,11 +117,10 @@ namespace Lib.Mac
 			return cgimages;
 		}
 
-		private static CGImage NSImage2CGImage(NSImage srcImg)
+		private CGImage NSImage2CGImage(NSImage srcImg)
 		{
 			var rect = new CGRect(0f, 0f, srcImg.Size.Width, srcImg.Size.Height);
-			CGImage cgImage = srcImg.AsCGImage(ref rect, null, null);
-			return cgImage;
+			return srcImg?.AsCGImage(ref rect, null, null) ?? null; 
 		}
 
 		private async Task<List<CGImage>> GetCGImagesFromPDF(string src)
@@ -135,7 +141,7 @@ namespace Lib.Mac
 
 						var nsImage = new NSImage(page.DataRepresentation);
 						nsImage.Draw(new CGRect(0, 0, pdfImageRep.Size.Width, pdfImageRep.Size.Height));
-					imageList.Add(NSImage2CGImage(nsImage));
+						imageList.Add(NSImage2CGImage(nsImage));
 					});
 				}
 			});
