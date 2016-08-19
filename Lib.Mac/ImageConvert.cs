@@ -1,21 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using AppKit;
 using CoreGraphics;
-using PCLStorage;
-using System.IO;
-using System.Threading.Tasks;
 using Foundation;
 using ImageIO;
 using MobileCoreServices;
-using System.Collections.Generic;
-using System.Linq;
-using System.Diagnostics.Contracts;
 
 namespace Lib.Mac
 {
 	public class ImageConvert
 	{
-		readonly NSObject owner;
+		private readonly NSObject owner;
 
 		private ImageConvert()
 		{
@@ -85,7 +83,13 @@ namespace Lib.Mac
 					cgimages.AddRange(await GetCGImages(s));
 				}
 			}
-
+			if (!multipageSupport)
+			{
+				if (cgimages.Count != 1)
+				{
+					throw new ArgumentException();
+				}
+			}
 			string dist = src.FirstOrDefault() + "." + type.ToString();
 
 			using (var url = NSUrl.FromFilename(dist))
@@ -137,8 +141,9 @@ namespace Lib.Mac
 					var nsData = page.DataRepresentation;
 					this.owner.InvokeOnMainThread(() =>
 					{
+						// NSPdfImageRepのConstructorはUI Threadで動作させる必要がある
 						var pdfImageRep = new NSPdfImageRep(nsData);
-
+						// HACK 画質の検証
 						var nsImage = new NSImage(page.DataRepresentation);
 						nsImage.Draw(new CGRect(0, 0, pdfImageRep.Size.Width, pdfImageRep.Size.Height));
 						imageList.Add(NSImage2CGImage(nsImage));

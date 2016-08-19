@@ -14,13 +14,22 @@ namespace ImageSample
 		public ViewController(IntPtr handle) : base(handle)
 		{
 		}
+
 		private List<string> srcList = new List<string>();
+		private ImageConvert.ImageType imgType;
+
 		public override void ViewDidLoad()
 		{
 			base.ViewDidLoad();
 
 			// Do any additional setup after loading the view.
 			filesList.StringValue = string.Empty;
+
+			foreach (ImageConvert.ImageType t in Enum.GetValues(typeof(ImageConvert.ImageType)))
+			{
+				TypePopupButton.InsertItem(t.ToString(), (nint)(int)t);
+				System.Diagnostics.Debug.WriteLine($"{t}. {(int)t}");
+			}
 		}
 
 		public override NSObject RepresentedObject
@@ -42,7 +51,7 @@ namespace ImageSample
 			if (srcList.Count != 0)
 			{
 				var ic = new ImageConvert(this);
-				var result = await ic.Convert(srcList, ImageConvert.ImageType.PDF).ConfigureAwait(false);
+				var result = await ic.Convert(srcList, imgType).ConfigureAwait(false);
 
 				InvokeOnMainThread(() =>
 				{
@@ -54,7 +63,13 @@ namespace ImageSample
 						filenameEdit.StringValue = "Fail!";
 					}
 				});
+				filesList.StringValue = string.Empty;
 			}
+		}
+
+		partial void TypeSelected(NSObject sender)
+		{
+			imgType = (Lib.Mac.ImageConvert.ImageType)(int)TypePopupButton.IndexOfSelectedItem;
 		}
 
 		partial void BrowsePressed(NSObject sender)

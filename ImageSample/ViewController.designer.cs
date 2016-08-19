@@ -18,14 +18,25 @@ namespace ImageSample
 		[Outlet]
 		AppKit.NSTextField filesList { get; set; }
 
+		[Outlet]
+		AppKit.NSPopUpButton TypePopupButton { get; set; }
+
 		[Action ("BrowsePressed:")]
 		partial void BrowsePressed (Foundation.NSObject sender);
 
 		[Action ("ConvertPressed:")]
 		partial void ConvertPressed (Foundation.NSObject sender);
+
+		[Action ("TypeSelected:")]
+		partial void TypeSelected (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (TypePopupButton != null) {
+				TypePopupButton.Dispose ();
+				TypePopupButton = null;
+			}
+
 			if (filenameEdit != null) {
 				filenameEdit.Dispose ();
 				filenameEdit = null;
