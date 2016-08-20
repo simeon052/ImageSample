@@ -1,4 +1,4 @@
 # ImageSample
 
 
-This is Xamarin.Mac Image format conver sample.
+This is Xamarin.Mac Image format convert sample.
