@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -67,15 +68,16 @@ namespace Lib.Mac
 			{
 				if (src.Count != 1)
 				{
-					throw new ArgumentException();
+					throw new ArgumentOutOfRangeException(nameof(type) + ":" + type.GetType().ToString(), "Target format doesn't support multiple files.");
 				}
 			}
 
 			var cgimages = new List<CGImage>();
 			foreach (var s in src)
 			{
-				if (Path.GetExtension(s).ToUpper().Contains(ImageType.PDF.ToString()))
+				if (Path.GetExtension(s).ToUpper().Equals("." + ImageType.PDF.ToString()))
 				{
+					Debug.WriteLine(Path.GetExtension(s).ToUpper());
 					cgimages.AddRange(await GetCGImagesFromPDF(s));
 				}
 				else
@@ -87,10 +89,11 @@ namespace Lib.Mac
 			{
 				if (cgimages.Count != 1)
 				{
-					throw new ArgumentException();
+					throw new ArgumentOutOfRangeException(nameof(type) + ":" + type.GetType().ToString(), "Target format doesn't support multiple files.");
 				}
 			}
-			string dist = src.FirstOrDefault() + "." + type.ToString();
+
+			string dist = Path.ChangeExtension(src.FirstOrDefault(), type.ToString());
 
 			using (var url = NSUrl.FromFilename(dist))
 			using (var dstImg = CGImageDestination.Create(url, uttype, cgimages.Count))
@@ -124,7 +127,7 @@ namespace Lib.Mac
 		private CGImage NSImage2CGImage(NSImage srcImg)
 		{
 			var rect = new CGRect(0f, 0f, srcImg.Size.Width, srcImg.Size.Height);
-			return srcImg?.AsCGImage(ref rect, null, null) ?? null; 
+			return srcImg?.AsCGImage(ref rect, null, null) ?? null;
 		}
 
 		private async Task<List<CGImage>> GetCGImagesFromPDF(string src)

@@ -50,20 +50,36 @@ namespace ImageSample
 			//			List<string> srcList = new List<string> { @"/Users/matsussa/Documents/cat1.png", @"/Users/matsussa/Documents/cat2.jpg" };
 			if (srcList.Count != 0)
 			{
-				var ic = new ImageConvert(this);
-				var result = await ic.Convert(srcList, imgType).ConfigureAwait(false);
-
-				InvokeOnMainThread(() =>
+				try
 				{
-					if (result)
+					var ic = new ImageConvert(this);
+					var result = await ic.Convert(srcList, imgType).ConfigureAwait(false);
+
+					InvokeOnMainThread(() =>
 					{
-						filenameEdit.StringValue = "Done!";
-					}
-					else {
-						filenameEdit.StringValue = "Fail!";
-					}
-				});
-				filesList.StringValue = string.Empty;
+						if (result)
+						{
+							filenameEdit.StringValue = "Done!";
+						}
+						else {
+							filenameEdit.StringValue = "Fail!";
+						}
+					});
+					filesList.StringValue = string.Empty;
+				}
+				catch (Exception ex)
+				{
+					InvokeOnMainThread(() =>
+					{
+						var alert = new NSAlert()
+						{
+							AlertStyle = NSAlertStyle.Critical,
+							InformativeText = ex.Message,
+							MessageText = ex.GetType().ToString(),
+						};
+						alert.RunModal();
+					});
+				}
 			}
 		}
 
